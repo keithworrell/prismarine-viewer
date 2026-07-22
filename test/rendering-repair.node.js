@@ -9,6 +9,7 @@ const THREE = global.THREE
 const { Vec3 } = require('vec3')
 const entitiesData = require('../viewer/lib/entity/entities.json')
 const {
+  resolveEntityModel,
   resolveRenderLayers,
   resolveTexturePath,
   transformVertex
@@ -72,6 +73,10 @@ test('rotates the chicken body cube around its center', () => {
 })
 
 test('selects deterministic animal layers and current texture paths', () => {
+  const glowSquid = resolveEntityModel('glow_squid')
+  assert.equal(glowSquid.modelType, 'squid')
+  assert.equal(glowSquid.definition, entitiesData.squid)
+
   assert.deepEqual(resolveRenderLayers('cat', entitiesData.cat, { variant: 0 }), [{ geometry: 'default', texture: 'tabby' }])
   assert.deepEqual(resolveRenderLayers('rabbit', entitiesData.rabbit, { type: 1 }), [{ geometry: 'default', texture: 'white' }])
   assert.deepEqual(resolveRenderLayers('sheep', entitiesData.sheep, { wool: 0x10 }), [{ geometry: 'sheared', texture: 'sheared' }])
@@ -80,6 +85,7 @@ test('selects deterministic animal layers and current texture paths', () => {
   const cases = [
     ['chicken', 'textures/entity/chicken', { variant: 0 }, 'default'],
     ['cow', 'textures/entity/cow/cow', { variant: 1 }, 'default'],
+    ['glow_squid', 'textures/entity/squid', {}, 'default'],
     ['pig', 'textures/entity/pig/pig', { variant: 2 }, 'default'],
     ['sheep', 'textures/entity/sheep/sheep_fur', {}, 'default'],
     ['cat', 'textures/entity/cat/tuxedo', {}, 'black']

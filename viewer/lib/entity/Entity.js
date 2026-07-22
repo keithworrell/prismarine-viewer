@@ -105,6 +105,19 @@ const DEFAULT_TEXTURE_KEYS = {
   zombie_villager: 'farmer'
 }
 
+// Later Java editions introduced mobs whose renderer is a texture variant of
+// geometry already present in this legacy Bedrock-derived catalog. Keep those
+// aliases explicit and version-neutral; texture relocation remains the job of
+// resolveTexturePath below.
+const ENTITY_MODEL_ALIASES = {
+  glow_squid: 'squid'
+}
+
+function resolveEntityModel (type) {
+  const modelType = ENTITY_MODEL_ALIASES[type] || type
+  return { modelType, definition: entities[modelType] }
+}
+
 const NUMERIC_VARIANTS = {
   cat: ['tabby', 'black', 'red', 'siamese', 'british', 'calico', 'persian', 'ragdoll', 'white', 'jellie', 'all_black'],
   fox: ['red', 'arctic'],
@@ -189,6 +202,7 @@ function resolveTexturePath (version, type, texture, renderState = {}, textureKe
   const movedDefaults = {
     arrow: 'textures/entity/projectiles/arrow',
     firework_rocket: 'textures/items/firework_rocket',
+    glow_squid: 'textures/entity/squid/glow_squid',
     player: 'textures/entity/player/wide/steve',
     potion: 'textures/items/splash_potion',
     squid: 'textures/entity/squid/squid'
@@ -355,7 +369,7 @@ function getMesh (texture, jsonModel) {
 
 class Entity {
   constructor (version, type, scene, renderState = {}) {
-    const e = entities[type]
+    const { modelType, definition: e } = resolveEntityModel(type)
     if (!e) {
       console.warn(`Unknown entity ${type} - caller will render visible bounds`)
       this.mesh = new THREE.Object3D()
@@ -364,7 +378,7 @@ class Entity {
     }
 
     this.mesh = new THREE.Object3D()
-    const layers = resolveRenderLayers(type, e, renderState)
+    const layers = resolveRenderLayers(modelType, e, renderState)
     for (const layer of layers) {
       const jsonModel = e.geometry[layer.geometry]
       const texture = resolveTexturePath(version, type, e.textures[layer.texture], renderState, layer.texture)
@@ -383,5 +397,6 @@ class Entity {
 module.exports = Entity
 module.exports.getMesh = getMesh
 module.exports.resolveRenderLayers = resolveRenderLayers
+module.exports.resolveEntityModel = resolveEntityModel
 module.exports.resolveTexturePath = resolveTexturePath
 module.exports.transformVertex = transformVertex
