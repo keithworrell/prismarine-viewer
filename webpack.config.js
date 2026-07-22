@@ -73,6 +73,11 @@ const workerConfig = {
   ],
   externals: [
     function (req, cb) {
+      const isBedrockData = req.context.includes('minecraft-data') && /[\\/]bedrock[\\/]/.test(req.request)
+      if (isBedrockData && !/[\\/]bedrock[\\/]common[\\/]/.test(req.request)) {
+        cb(null, [])
+        return
+      }
       if (req.context.includes('minecraft-data') && req.request.endsWith('.json')) {
         const fileName = req.request.split('/').pop().replace('.json', '')
         if (!allowedWorkerFiles.includes(fileName)) {

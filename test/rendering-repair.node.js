@@ -39,6 +39,7 @@ function worldWith (entries) {
 test('requires an exact supported Minecraft asset version', () => {
   assert.equal(getVersion('1.21.8'), '1.21.8')
   assert.equal(getVersion('1.21.7'), null)
+  assert.equal(getVersion('1.21.4'), null)
 
   const exact = require('minecraft-data')('1.21.8')
   const old = require('minecraft-data')('1.21.4')

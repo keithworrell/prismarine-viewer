@@ -23,6 +23,9 @@ if (requestedVersion && !supportedVersions.includes(requestedVersion)) {
 
 const manifestPath = path.resolve(__dirname, '../public/assets-manifest.json')
 const manifest = fs.existsSync(manifestPath) ? fs.readJsonSync(manifestPath) : { versions: {} }
+manifest.versions = Object.fromEntries(
+  Object.entries(manifest.versions || {}).filter(([version]) => supportedVersions.includes(version))
+)
 
 function sha256 (buffer) {
   return crypto.createHash('sha256').update(buffer).digest('hex')

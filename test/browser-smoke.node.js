@@ -17,6 +17,11 @@ async function main () {
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--use-angle=swiftshader']
     })
     const page = await browser.newPage()
+    const workerErrors = []
+    page.on('console', message => {
+      if (message.type() === 'error' && message.text().includes('[WorldRenderer] Worker')) workerErrors.push(message.text())
+    })
+    page.on('pageerror', error => workerErrors.push(error.message))
     await page.goto(`http://127.0.0.1:${server.address().port}/`, { waitUntil: 'domcontentloaded' })
     await page.waitForFunction(() => window.__hhViewerBridge?.ready === true)
     const bridge = await page.evaluate(() => ({
@@ -33,6 +38,11 @@ async function main () {
       hasControls: true,
       hasSocket: true
     })
+
+    assert.equal(await page.evaluate(() => window.__hhViewerBridge.viewer.setVersion('1.21.8')), true)
+    await page.waitForFunction(() => Boolean(window.__hhViewerBridge.viewer.world.blockStatesData))
+    await new Promise(resolve => setTimeout(resolve, 250))
+    assert.deepEqual(workerErrors, [])
   } finally {
     if (browser) await browser.close()
     await new Promise(resolve => server.close(resolve))
