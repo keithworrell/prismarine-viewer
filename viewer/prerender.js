@@ -1,6 +1,7 @@
 const path = require('path')
 const { makeTextureAtlas } = require('./lib/atlas')
 const { prepareBlocksStates } = require('./lib/modelsBuilder')
+const { applyAssetOverrides } = require('./lib/assetOverrides')
 const mcAssets = require('minecraft-assets')
 const fs = require('fs-extra')
 const crypto = require('crypto')
@@ -46,7 +47,7 @@ for (const version of versions) {
     continue
   }
 
-  const assets = mcAssets(version)
+  const assets = applyAssetOverrides(version, mcAssets(version))
   const atlas = makeTextureAtlas(assets)
   const atlasBuffer = atlas.image
   const blockStatesBuffer = Buffer.from(JSON.stringify(prepareBlocksStates(assets, atlas)))

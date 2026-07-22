@@ -18,6 +18,7 @@ const { getEntityMesh } = require('../viewer/lib/entities')
 const { getEntityRenderState } = require('../viewer/lib/worldView')
 const { getFluidKind, getLiquidRenderHeight, renderLiquid } = require('../viewer/lib/models')
 const { getVersion } = require('../viewer/lib/version')
+const { applyAssetOverrides } = require('../viewer/lib/assetOverrides')
 
 function block (name, position, options = {}) {
   return {
@@ -47,6 +48,18 @@ test('requires an exact supported Minecraft asset version', () => {
   const stateId = exact.blocksByName.seagrass.minStateId
   assert.equal(exact.blocksByStateId[stateId].name, 'seagrass')
   assert.notEqual(old.blocksByStateId[stateId].name, 'seagrass')
+
+  const assets = applyAssetOverrides('1.21.8', require('minecraft-assets')('1.21.8'))
+  for (const name of ['bush', 'leaf_litter', 'firefly_bush']) {
+    assert.ok(assets.blocksStates[name], `${name} block state overlay`)
+    assert.equal(fs.existsSync(path.join(assets.directory, 'blocks', `${name}.png`)), true, `${name} texture`)
+  }
+
+  const generatedStates = require('../public/blocksStates/1.21.8.json')
+  for (const name of ['bush', 'leaf_litter', 'firefly_bush']) {
+    assert.ok(generatedStates[name], `${name} generated block state`)
+    assert.equal(JSON.stringify(generatedStates[name]).includes('"u":0,"v":0'), false, `${name} must not use missing texture tile`)
+  }
 })
 
 test('rotates the chicken body cube around its center', () => {
