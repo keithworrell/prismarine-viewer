@@ -83,6 +83,7 @@ class WorldRenderer {
   }
 
   setVersion (version) {
+    if (this.version !== version) this.blockStatesData = undefined
     this.version = version
     this.resetWorld()
     this.active = true
@@ -94,29 +95,36 @@ class WorldRenderer {
   }
 
   updateTexturesData () {
-    loadTexture(this.texturesDataUrl || `textures/${this.version}.png`, texture => {
-      texture.magFilter = THREE.NearestFilter
-      texture.minFilter = THREE.NearestFilter
-      texture.flipY = false
-      this.material.map = texture
-    })
+    const version = this.version
+    const loadAssets = (manifest = {}) => {
+      const hashes = manifest.versions?.[version] || {}
+      const textureSuffix = hashes.textureAtlasSha256 ? `?v=${hashes.textureAtlasSha256}` : ''
+      const statesSuffix = hashes.blockStatesSha256 ? `?v=${hashes.blockStatesSha256}` : ''
 
-    const loadBlockStates = () => {
-      return new Promise(resolve => {
+      loadTexture(this.texturesDataUrl || `textures/${version}.png${textureSuffix}`, texture => {
+        if (this.version !== version) return
+        texture.magFilter = THREE.NearestFilter
+        texture.minFilter = THREE.NearestFilter
+        texture.flipY = false
+        this.material.map = texture
+      })
+
+      return new Promise((resolve, reject) => {
         if (this.blockStatesData) return resolve(this.blockStatesData)
-        return loadJSON(`blocksStates/${this.version}.json`, resolve)
+        loadJSON(`blocksStates/${version}.json${statesSuffix}`, resolve, reject)
+      }).then((blockStates) => {
+        if (this.version !== version) return
+        this.blockStatesData = blockStates
+        console.log(`[WorldRenderer] Block states loaded for ${version}`)
+        for (const worker of this.workers) {
+          worker.postMessage({ type: 'blockStates', json: blockStates })
+        }
+      }).catch((err) => {
+        console.error('[WorldRenderer] Failed to load block states:', err)
       })
     }
-    loadBlockStates().then((blockStates) => {
-      // Save blockStates data for diagnostics and future use
-      this.blockStatesData = blockStates
-      console.log(`[WorldRenderer] Block states loaded for ${this.version}`)
-      for (const worker of this.workers) {
-        worker.postMessage({ type: 'blockStates', json: blockStates })
-      }
-    }).catch((err) => {
-      console.error(`[WorldRenderer] Failed to load block states:`, err)
-    })
+
+    loadJSON('assets-manifest.json', loadAssets, () => loadAssets())
   }
 
   addColumn (x, z, chunk) {

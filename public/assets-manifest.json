@@ -1,0 +1,72 @@
+{
+  "versions": {
+    "1.21.8": {
+      "textureAtlasSha256": "2c8786d13e973d0d07035c57be5ee4a2740acf863113544ce7a4eaac1a4ff2cd",
+      "blockStatesSha256": "01e6c0146e3c643fef0085d6f2c054549c403dd6d29565b05e9b227609e3b310"
+    },
+    "1.8.8": {
+      "textureAtlasSha256": "675dbb16a911f8348645c07f7a9f043e2e11aa27d1b34b46a1bba8088bdec216",
+      "blockStatesSha256": "abc160026762cf8d88685cb3d976d6341eac98848a7e2ff38f2915a92b7dcd94"
+    },
+    "1.9.4": {
+      "textureAtlasSha256": "8e0c44e1f10e64cb18499b917c44e807e9be1d2ecc17810b17a3ddc46b4238cb",
+      "blockStatesSha256": "005c8436a518b7d93077bddf1364ed597c59154a0cf98a80edefc9ed622bcf8f"
+    },
+    "1.10.2": {
+      "textureAtlasSha256": "57eff73c2ed96c6168886ed139921e74dcc449065fdb2a1d639173f0396da255",
+      "blockStatesSha256": "cdb236b90df41bb8a21675fa1e28180cceb39950b151e61000b31a6da0b52574"
+    },
+    "1.11.2": {
+      "textureAtlasSha256": "c852de9ac0f7cb202c8f4d834fc16080d30f9669be4e2b508af159bf7b9b30aa",
+      "blockStatesSha256": "95b03018b1226fd6aa81a06be061e8a72c16298461b93523027f7363d9e2cc63"
+    },
+    "1.12.2": {
+      "textureAtlasSha256": "4c7f0732132d80b3505472e5c57a6a173ee20b5370507eb6ee92467069c9c2cd",
+      "blockStatesSha256": "4ab65e76a4641b718e8f1066301420c5c402e4384d4279ca583104d8e978b4f9"
+    },
+    "1.13.2": {
+      "textureAtlasSha256": "e418e83402f5c459219623fdfe10fd6fe49dd73f21b80211c04d40cc564a17e6",
+      "blockStatesSha256": "495206fa757b2da84cf9402efa9004d0ee9e9961dcbccec4cdd7ed31038a0f6e"
+    },
+    "1.14.4": {
+      "textureAtlasSha256": "98121d28c49a358c57b1654cf8cd415028709d95039ec75fb4b20923e9144bac",
+      "blockStatesSha256": "5ac40fc80b88dae50fae9173252834785794af7e770cf577937e874134052869"
+    },
+    "1.15.2": {
+      "textureAtlasSha256": "2d4cea527558f71a7601039d987ef4f65433455688eb8a4c5497952fb42a00c4",
+      "blockStatesSha256": "f8fabcdb2a0846810d9fc8aa1f3995739b9a78c130619841232b7f3585446af8"
+    },
+    "1.16.1": {
+      "textureAtlasSha256": "b685837fa46c0fc62532e49f32d07b65479ce0b9d10d45f0a9a714358d91565e",
+      "blockStatesSha256": "5386c6445830ba2d135e5926c577fcc10b254e236a09415a5bc068de0d45ed46"
+    },
+    "1.16.4": {
+      "textureAtlasSha256": "b685837fa46c0fc62532e49f32d07b65479ce0b9d10d45f0a9a714358d91565e",
+      "blockStatesSha256": "b15e39d51bd088effd203f0399f6a738f553f7544ff74c20c96de919b2bdaaa0"
+    },
+    "1.17.1": {
+      "textureAtlasSha256": "f305a30b4dcd5619a106bcf878318e29720fa1055de7a29a09ae16d1c0f8abc1",
+      "blockStatesSha256": "fbe94137196983647eaa837f730516a6f0f59e40139201528726c86d9483c94a"
+    },
+    "1.18.1": {
+      "textureAtlasSha256": "8f47d7c36186b0fc1a78e2de6fdf2d97dab2f5805fddcb585bd1eb40d9bc28ac",
+      "blockStatesSha256": "a684c91144bad5742ef0f910802d0f0b139d14465d0a57fd13a110027482ee98"
+    },
+    "1.19": {
+      "textureAtlasSha256": "ced83d28cfcfdd348e553cbf92b8eb787717b0ba26f1e1deb0155e86b4cd01ee",
+      "blockStatesSha256": "076c983d16c604343eee1bace06f68d861465b93ecde1d4e183c640b5f374026"
+    },
+    "1.20.1": {
+      "textureAtlasSha256": "ae65f3abf032b959107785bc7255d4d2771663bd3f09988b41681b55ba6adc77",
+      "blockStatesSha256": "1313b49c7807475b6efb9e9deaec58b456cfc7836a1a3d8e90afc6f926a5369a"
+    },
+    "1.21.1": {
+      "textureAtlasSha256": "d5d8b758f15168143f2199a11c0cf0bb9743b6c3d4e92c22b91b3dc49e141ae3",
+      "blockStatesSha256": "3b05a73f15f2365531faae040073fea5d615a29da1d0f0e59dff566ce64da8ef"
+    },
+    "1.21.4": {
+      "textureAtlasSha256": "7d83cd119730cf8ad5e9db4c66ed1501644b0234ba089be0836e7b1c52b0e5f7",
+      "blockStatesSha256": "d7c5559087d1f02def156c58f3ba5bbec544fee09fd7f825039f569aa87783aa"
+    }
+  }
+}

@@ -38,9 +38,10 @@ class Viewer {
   }
 
   setVersion (version) {
-    version = getVersion(version)
+    const requestedVersion = String(version)
+    version = getVersion(requestedVersion)
     if (version === null) {
-      const msg = `${version} is not supported`
+      const msg = `${requestedVersion} is not supported; exact viewer assets are required`
       window.alert(msg)
       console.log(msg)
       return false
@@ -48,7 +49,7 @@ class Viewer {
     console.log('Using version: ' + version)
     this.version = version
     this.world.setVersion(version)
-    this.entities.clear()
+    this.entities.setVersion(version)
     this.primitives.clear()
     return true
   }

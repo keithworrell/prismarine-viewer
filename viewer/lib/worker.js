@@ -59,7 +59,7 @@ self.onmessage = ({ data }) => {
     const chunk = world.addColumn(data.x, data.z, data.chunk)
 
     // Log chunk structure
-    console.log(`[WORKER] Chunk sections:`, chunk.sections ? chunk.sections.length : 'undefined')
+    console.log('[WORKER] Chunk sections:', chunk.sections ? chunk.sections.length : 'undefined')
 
     // Sample some blocks from the chunk to see if they're air
     // Convert chunk coordinates to world coordinates (multiply by 16)

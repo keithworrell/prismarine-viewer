@@ -2,6 +2,48 @@ const { spiral, ViewRect, chunkPos } = require('./simpleUtils')
 const { Vec3 } = require('vec3')
 const EventEmitter = require('events')
 
+const RENDER_METADATA_KEYS = new Set([
+  'baby', 'variant', 'type', 'wool', 'flags', 'type_variant', 'trusting',
+  'chest', 'is_screaming_goat', 'has_left_horn', 'has_right_horn',
+  'armadillo_state', 'state', 'collar_color', 'pose'
+])
+
+function renderScalar (value) {
+  if (typeof value === 'bigint') return Number(value)
+  if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) return value
+  if (value && typeof value === 'object') {
+    for (const key of ['value', 'id', 'name', 'variantId', 'variantData']) {
+      const nested = value[key]
+      if (nested === null || ['string', 'number', 'boolean'].includes(typeof nested)) return nested
+    }
+  }
+  return undefined
+}
+
+function getEntityRenderState (bot, entity) {
+  const state = {}
+  const metadataKeys = bot.registry?.entitiesByName?.[entity.name]?.metadataKeys || []
+  for (let index = 0; index < metadataKeys.length; index++) {
+    const key = metadataKeys[index]
+    if (!RENDER_METADATA_KEYS.has(key)) continue
+    const value = renderScalar(entity.metadata?.[index])
+    if (value !== undefined) state[key] = value
+  }
+  return state
+}
+
+function entityPacket (bot, entity) {
+  return {
+    id: entity.id,
+    name: entity.name,
+    pos: entity.position,
+    width: entity.width,
+    height: entity.height,
+    username: entity.username,
+    renderState: getEntityRenderState(bot, entity)
+  }
+}
+
 class WorldView extends EventEmitter {
   constructor (world, viewDistance, position = new Vec3(0, 0, 0), emitter = null) {
     super()
@@ -27,7 +69,11 @@ class WorldView extends EventEmitter {
       // 'move': botPosition,
       entitySpawn: function (e) {
         if (e === bot.entity) return
-        worldView.emitter.emit('entity', { id: e.id, name: e.name, pos: e.position, width: e.width, height: e.height, username: e.username })
+        worldView.emitter.emit('entity', entityPacket(bot, e))
+      },
+      entityUpdate: function (e) {
+        if (e === bot.entity) return
+        worldView.emitter.emit('entity', entityPacket(bot, e))
       },
       entityMoved: function (e) {
         worldView.emitter.emit('entity', { id: e.id, pos: e.position, pitch: e.pitch, yaw: e.yaw })
@@ -51,7 +97,7 @@ class WorldView extends EventEmitter {
     for (const id in bot.entities) {
       const e = bot.entities[id]
       if (e && e !== bot.entity) {
-        this.emitter.emit('entity', { id: e.id, name: e.name, pos: e.position, width: e.width, height: e.height, username: e.username })
+        this.emitter.emit('entity', entityPacket(bot, e))
       }
     }
   }
@@ -130,4 +176,4 @@ class WorldView extends EventEmitter {
   }
 }
 
-module.exports = { WorldView }
+module.exports = { WorldView, getEntityRenderState }

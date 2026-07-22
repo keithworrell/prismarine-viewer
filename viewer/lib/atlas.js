@@ -23,7 +23,10 @@ function readTexture (basePath, name) {
 
 function makeTextureAtlas (mcAssets) {
   const blocksTexturePath = path.join(mcAssets.directory, '/blocks')
-  const textureFiles = fs.readdirSync(blocksTexturePath).filter(file => file.endsWith('.png'))
+  // Atlas coordinates and the generated block-state JSON are one coupled
+  // artifact. Filesystem enumeration order is not portable, so make it
+  // deterministic before assigning UVs.
+  const textureFiles = fs.readdirSync(blocksTexturePath).filter(file => file.endsWith('.png')).sort()
   textureFiles.unshift('missing_texture.png')
 
   const texSize = nextPowerOfTwo(Math.ceil(Math.sqrt(textureFiles.length)))

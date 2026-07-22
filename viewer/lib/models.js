@@ -98,21 +98,49 @@ const elemFaces = {
   }
 }
 
-function getLiquidRenderHeight (world, block, type) {
-  if (!block || block.type !== type) return 1 / 9
+const WATER_FILLED_BLOCKS = new Set([
+  'bubble_column',
+  'kelp',
+  'kelp_plant',
+  'seagrass',
+  'tall_seagrass'
+])
+
+function blockProperties (block) {
+  try {
+    return block?.getProperties?.() || {}
+  } catch (err) {
+    return {}
+  }
+}
+
+function getFluidKind (block) {
+  if (!block) return null
+  if (block.name === 'water' || block.name === 'lava') return block.name
+  const waterlogged = blockProperties(block).waterlogged
+  if (WATER_FILLED_BLOCKS.has(block.name) || waterlogged === true || waterlogged === 'true') return 'water'
+  return null
+}
+
+function getLiquidRenderHeight (world, block, kind) {
+  if (!block || getFluidKind(block) !== kind) return 1 / 9
+  if (block.name !== kind) {
+    const blockAbove = world.getBlock(block.position.offset(0, 1, 0))
+    return getFluidKind(blockAbove) === kind ? 1 : 8 / 9
+  }
   if (block.metadata === 0) { // source block
     const blockAbove = world.getBlock(block.position.offset(0, 1, 0))
-    if (blockAbove && blockAbove.type === type) return 1
+    if (getFluidKind(blockAbove) === kind) return 1
     return 8 / 9
   }
   return ((block.metadata >= 8 ? 8 : 7 - block.metadata) + 1) / 9
 }
 
-function renderLiquid (world, cursor, texture, type, biome, water, attr) {
+function renderLiquid (world, cursor, texture, kind, biome, water, attr) {
   const heights = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
-      heights.push(getLiquidRenderHeight(world, world.getBlock(cursor.offset(x, 0, z)), type))
+      heights.push(getLiquidRenderHeight(world, world.getBlock(cursor.offset(x, 0, z)), kind))
     }
   }
   const cornerHeights = [
@@ -128,9 +156,8 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
 
     const neighbor = world.getBlock(cursor.offset(...dir))
     if (!neighbor) continue
-    if (neighbor.type === type) continue
-    if ((neighbor.isCube && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
-    if (neighbor.position.y < 0) continue
+    if (getFluidKind(neighbor) === kind) continue
+    if (neighbor.isCube && (!isUp || !neighbor.transparent)) continue
 
     let tint = [1, 1, 1]
     if (water) {
@@ -157,6 +184,14 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
       attr.t_colors.push(tint[0], tint[1], tint[2])
     }
   }
+}
+
+function getFluidTexture (blocksStates, kind) {
+  const state = blocksStates[kind]
+  if (!state?.variants) return null
+  const variantValue = Object.values(state.variants)[0]
+  const variant = Array.isArray(variantValue) ? variantValue[0] : variantValue
+  return variant?.model?.textures?.particle || null
 }
 
 function vecadd3 (a, b) {
@@ -379,63 +414,29 @@ function getSectionGeometry (sx, sy, sz, world, blocksStates) {
     indices: []
   }
 
-  let totalBlocks = 0
-  let nullBlocks = 0
-  let airBlocks = 0
-  let solidBlocks = 0
-  let renderCalls = 0
-
   const cursor = new Vec3(0, 0, 0)
   for (cursor.y = sy; cursor.y < sy + 16; cursor.y++) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
-        totalBlocks++
         const block = world.getBlock(cursor)
-        // FIX: Skip if chunk not loaded (world.getBlock returns null)
-        if (!block) {
-          nullBlocks++
-          continue
-        }
+        if (!block || block.name.includes('air')) continue
 
-        // Count air vs solid blocks
-        if (block.name.includes('air')) {
-          airBlocks++
-          continue  // Air blocks are skipped by getModelVariants
-        }
-
-        solidBlocks++
         const biome = block.biome.name
         if (block.variant === undefined) {
           block.variant = getModelVariants(block, blocksStates)
         }
 
-        // DEBUG: Log first solid block's variant in each section
-        if (solidBlocks === 1) {
-          const firstVariant = block.variant?.[0]
-          const elemCount = firstVariant?.model?.elements?.length || 0
-          console.log(`[MODELS] First solid block in section (${sx}, ${sy}, ${sz}): ${block.name} type=${block.type} stateId=${block.stateId} variants=${block.variant?.length || 0} hasModel=${firstVariant?.model ? 'YES' : 'NO'} elements=${elemCount}`)
-          if (elemCount === 0) {
-            console.log(`[MODELS] WARNING: Block "${block.name}" has a model but ZERO elements!`)
-          }
-        }
-
+        let renderedNativeFluid = false
         for (const variant of block.variant) {
-          if (!variant || !variant.model) {
-            // DEBUG: Log why we're skipping
-            if (solidBlocks === 1) {
-              console.log(`[MODELS] Skipping variant - variant:`, !!variant, 'model:', variant?.model ? 'yes' : 'no')
-            }
-            continue
-          }
+          if (!variant || !variant.model) continue
 
           if (block.name === 'water') {
-            renderCalls++
-            renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
+            if (!renderedNativeFluid) renderLiquid(world, cursor, variant.model.textures.particle, 'water', biome, true, attr)
+            renderedNativeFluid = true
           } else if (block.name === 'lava') {
-            renderCalls++
-            renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
+            if (!renderedNativeFluid) renderLiquid(world, cursor, variant.model.textures.particle, 'lava', biome, false, attr)
+            renderedNativeFluid = true
           } else {
-            renderCalls++
             let globalMatrix = null
             let globalShift = null
 
@@ -455,6 +456,12 @@ function getSectionGeometry (sx, sy, sz, world, blocksStates) {
               renderElement(world, cursor, element, variant.model.ao, attr, globalMatrix, globalShift, block, biome)
             }
           }
+        }
+
+        const fluidKind = getFluidKind(block)
+        if (fluidKind && !renderedNativeFluid) {
+          const texture = getFluidTexture(blocksStates, fluidKind)
+          if (texture) renderLiquid(world, cursor, texture, fluidKind, biome, fluidKind === 'water', attr)
         }
       }
     }
@@ -486,15 +493,6 @@ function getSectionGeometry (sx, sy, sz, world, blocksStates) {
   attr.normals = new Float32Array(attr.normals)
   attr.colors = new Float32Array(attr.colors)
   attr.uvs = new Float32Array(attr.uvs)
-
-  console.log(`[MODELS] Section (${sx}, ${sy}, ${sz}) stats:`)
-  console.log(`  Total blocks: ${totalBlocks}`)
-  console.log(`  Null blocks: ${nullBlocks}`)
-  console.log(`  Air blocks: ${airBlocks}`)
-  console.log(`  Solid blocks: ${solidBlocks}`)
-  console.log(`  Render calls: ${renderCalls}`)
-  console.log(`  Final vertices: ${attr.positions.length / 3}`)
-  console.log(`  Final indices: ${attr.indices.length}`)
 
   return attr
 }
@@ -555,4 +553,4 @@ function getModelVariants (block, blockStates) {
   return []
 }
 
-module.exports = { getSectionGeometry }
+module.exports = { getSectionGeometry, getFluidKind, getLiquidRenderHeight, renderLiquid }
